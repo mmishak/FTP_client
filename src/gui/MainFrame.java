@@ -1,9 +1,6 @@
 package gui;
 
-import javafx.scene.layout.Border;
-
 import javax.swing.*;
-import javax.swing.plaf.metal.MetalBorders;
 import java.awt.*;
 
 /**
