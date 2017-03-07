@@ -303,7 +303,7 @@ public class MainFrame extends JFrame {
 
                     File file = getSaveFile(FtpClient.getFileName(listFiles.getSelectedIndex()));
 
-                    if (FtpClient.retrFile(file)) {
+                    if (FtpClient.retrFile(listFiles.getSelectedIndex(), file)) {
                         updateFileList();
                     } else{
                         file.delete();

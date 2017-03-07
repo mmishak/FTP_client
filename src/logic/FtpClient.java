@@ -107,8 +107,8 @@ public final class FtpClient implements Runnable {
 
     }
 
-    public static boolean retrFile(File file) throws IOException {
-        boolean tmp = ftp.RETR(file);
+    public static boolean retrFile(int indexFileFirst, File fileSecond) throws IOException {
+        boolean tmp = ftp.RETR(fileList.get(indexFileFirst).getName(), fileSecond);
 
         if (tmp)
             fileList = getFileList();

@@ -185,22 +185,22 @@ public class FtpProtocol {
     }
 
     //посылка файла клиенту
-    public boolean RETR(File file) throws IOException {
+    public boolean RETR(String fileFirst, File fileSecond) throws IOException {
 
         PORT();
 
-        dataSoket.setFileData(file);
+        dataSoket.setFileData(fileSecond);
         dataSoket.setConnectMode(FtpDataSocket.RECV_FILE_MODE);
         dataSoket.start();
 
-        controlSoket.sendMessage("RETR " + file.getAbsolutePath());
+        controlSoket.sendMessage("RETR " + fileFirst);
         controlSoket.recvReply();
         if (!weitReplyCode(FtpProtocol.DATA_CONNECT_SUCCESS)) return false;
 
         controlSoket.recvReply();
 
         if (!weitReplyCode(FtpProtocol.RETR_SUCCESS)) {
-            file.delete();
+            fileSecond.delete();
         }
         return weitReplyCode(FtpProtocol.RETR_SUCCESS);
     }
