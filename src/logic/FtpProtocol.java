@@ -29,7 +29,7 @@ public class FtpProtocol {
     private FtpDataSocket dataSoket;
 
     public FtpProtocol() throws IOException {
-        dataSoket = new FtpDataSocket(53797);
+        dataSoket = new FtpDataSocket();
     }
 
     private boolean weitReplyCode(int code) {
@@ -39,11 +39,11 @@ public class FtpProtocol {
     public boolean connect(String hostname, int port) {
         try {
 
-            System.out.println("--> Try connect to " + hostname);
+            Util.log("--> Try connect to " + hostname, Util.LOG_TYPE_COMMAND);
 
             controlSoket = new FtpControlSocket(hostname, port);
 
-            System.out.println(controlSoket.getReply());
+            controlSoket.recvReply();
             return weitReplyCode(FtpProtocol.CONNECT_SUCCESS);
 
 
@@ -60,10 +60,10 @@ public class FtpProtocol {
     public boolean disconnect() {
         try {
             controlSoket.close();
-            System.out.println("--> Socket closed");
+            Util.log("--> Socket closed", Util.LOG_TYPE_COMMAND);
             return true;
         } catch (IOException e) {
-            System.out.println("--> Socket not closed");
+            Util.log("--> Socket not closed", Util.LOG_TYPE_COMMAND);
             return false;
         }
 
@@ -73,7 +73,6 @@ public class FtpProtocol {
     public boolean USER(String user) throws IOException {
         controlSoket.sendMessage("USER " + user);
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
         return weitReplyCode(FtpProtocol.USER_SUCCESS);
     }
 
@@ -81,12 +80,11 @@ public class FtpProtocol {
     public boolean PASS(String password) throws IOException {
         controlSoket.sendMessage("PASS " + password);
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
         return weitReplyCode(FtpProtocol.PASS_SUCCESS);
     }
 
     //отправка клиенту расширенной информации о списке файлов каталога
-    public boolean LIST() throws IOException {
+    public String LIST() throws IOException {
 
         PORT();
 
@@ -95,22 +93,20 @@ public class FtpProtocol {
 
         controlSoket.sendMessage("LIST");
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
-        if (!weitReplyCode(FtpProtocol.DATA_CONNECT_SUCCESS)) return false;
+        if (!weitReplyCode(FtpProtocol.DATA_CONNECT_SUCCESS)) return null;
 
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
 
         if (weitReplyCode(FtpProtocol.LIST_SUCCESS)) {
-            System.out.println(dataSoket.getListData());
+            return dataSoket.getListData();
         }
 
-        return weitReplyCode(FtpProtocol.LIST_SUCCESS);
+        return null;
 
     }
 
     //отправка клиенту сокращённой информации о списке файлов каталога
-    public boolean NLST() throws IOException {
+    public String NLST() throws IOException {
 
         PORT();
 
@@ -119,24 +115,21 @@ public class FtpProtocol {
 
         controlSoket.sendMessage("NLST");
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
-        if (!weitReplyCode(FtpProtocol.DATA_CONNECT_SUCCESS)) return false;
+        if (!weitReplyCode(FtpProtocol.DATA_CONNECT_SUCCESS)) return null;
 
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
 
         if (weitReplyCode(FtpProtocol.NLST_SUCCESS)) {
-            System.out.println(dataSoket.getListData());
+            return dataSoket.getListData();
         }
 
-        return weitReplyCode(FtpProtocol.NLST_SUCCESS);
+        return null;
     }
 
     //иимя текущего каталога
     public boolean PWD() throws IOException{
         controlSoket.sendMessage("PWD");
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
         return weitReplyCode(FtpProtocol.PWD_SUCCESS);
     }
 
@@ -144,7 +137,6 @@ public class FtpProtocol {
     public boolean CWD(String dirName) throws IOException {
         controlSoket.sendMessage("CWD " + dirName);
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
         return weitReplyCode(FtpProtocol.CWD_SUCCESS);
     }
 
@@ -152,7 +144,6 @@ public class FtpProtocol {
     public boolean MKD(String dirName) throws IOException {
         controlSoket.sendMessage("MKD " + dirName);
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
         return weitReplyCode(FtpProtocol.MKD_SUCCESS);
     }
 
@@ -160,7 +151,7 @@ public class FtpProtocol {
     public boolean RMD(String dirName) throws IOException {
         controlSoket.sendMessage("RMD " + dirName);
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
+
         return weitReplyCode(FtpProtocol.RMD_SUCCESS);
     }
 
@@ -168,7 +159,6 @@ public class FtpProtocol {
     public boolean DELE(String fileName) throws IOException {
         controlSoket.sendMessage("DELE " + fileName);
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
         return weitReplyCode(FtpProtocol.DELE_SUCCESS);
     }
 
@@ -191,59 +181,49 @@ public class FtpProtocol {
         );
 
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
         return weitReplyCode(FtpProtocol.PORT_SUCCESS);
     }
 
     //посылка файла клиенту
-    public boolean RETR(String fileName) throws IOException {
-
-        File tempFile = new File(fileName);
-        if (!tempFile.exists())
-            tempFile.createNewFile();
+    public boolean RETR(File file) throws IOException {
 
         PORT();
 
-        dataSoket.setFileData(tempFile);
+        dataSoket.setFileData(file);
         dataSoket.setConnectMode(FtpDataSocket.RECV_FILE_MODE);
         dataSoket.start();
 
-        controlSoket.sendMessage("RETR " + fileName);
+        controlSoket.sendMessage("RETR " + file.getAbsolutePath());
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
         if (!weitReplyCode(FtpProtocol.DATA_CONNECT_SUCCESS)) return false;
 
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
 
         if (!weitReplyCode(FtpProtocol.RETR_SUCCESS)) {
-            tempFile.delete();
+            file.delete();
         }
         return weitReplyCode(FtpProtocol.RETR_SUCCESS);
     }
 
     //запись полученного от клиента файла
-    public boolean STOR(String fileName) throws IOException {
-        File tempFile = new File(fileName);
+    public boolean STOR(File file) throws IOException {
 
-        if (!tempFile.exists()){
-            System.out.println("File " + fileName + "not found.");
+        if (!file.exists()){
+            Util.log("File " + file.getAbsolutePath() + " not found.", Util.LOG_TYPE_ANSWER);
             return false;
         }
 
         PORT();
 
-        dataSoket.setFileData(tempFile);
+        dataSoket.setFileData(file);
         dataSoket.setConnectMode(FtpDataSocket.SEND_FILE_MODE);
         dataSoket.start();
 
-        controlSoket.sendMessage("STOR " + fileName);
+        controlSoket.sendMessage("STOR " + file.getName());
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
         if (!weitReplyCode(FtpProtocol.DATA_CONNECT_SUCCESS)) return false;
 
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
 
         return weitReplyCode(FtpProtocol.STOR_SUCCESS);
     }
@@ -252,7 +232,6 @@ public class FtpProtocol {
     // 0 - EBCDIC(E), 1 - ASCII(A), 2 - binary(I)
     public boolean TYPE() throws IOException {
         controlSoket.sendMessage("TYPE I");
-        System.out.println(controlSoket.getReply());
         return weitReplyCode(FtpProtocol.TYPE_SUCCESS);
     }
 
@@ -272,7 +251,6 @@ public class FtpProtocol {
         }
 
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
 
         return weitReplyCode(FtpProtocol.TYPE_SUCCESS);
     }
@@ -281,7 +259,6 @@ public class FtpProtocol {
     public boolean QUIT() throws IOException {
         controlSoket.sendMessage("QUIT");
         controlSoket.recvReply();
-        System.out.println(controlSoket.getReply());
         return weitReplyCode(FtpProtocol.QUIT_SUCCESS);
     }
 }

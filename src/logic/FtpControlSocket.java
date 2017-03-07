@@ -20,12 +20,10 @@ public class FtpControlSocket extends Socket{
         out = new BufferedWriter(new OutputStreamWriter(this.getOutputStream()));
         in = new BufferedReader(new InputStreamReader(this.getInputStream()));
 
-        recvReply();
-
     }
 
     public void sendMessage(String message) throws IOException {
-        System.out.println("--> " + message);
+        Util.log("--> " + message, Util.LOG_TYPE_COMMAND);
         out.write(message + "\n");
         out.flush();
     }
@@ -33,15 +31,19 @@ public class FtpControlSocket extends Socket{
     public void recvReply() {
         try {
             StringBuilder sb = new StringBuilder();
-            String line = "";
+            String line = in.readLine();
 
-            while (true) {
-                sb.append(line = in.readLine()).append("\n");
-                if (line.charAt(3) == ' ') break;
+            replyCode = Integer.valueOf(line.substring(0, 3));
+            sb.append(line).append("\n");
+
+            while (!line.startsWith(replyCode + " ")) {
+                line = in.readLine();
+                sb.append(line).append("\n");
             }
 
-            reply = sb.toString();
-            replyCode = Integer.valueOf(line.substring(0, 3));
+            reply = sb.toString().trim();
+
+            Util.log(reply,Util.LOG_TYPE_ANSWER);
 
         } catch (Exception e) {
             e.printStackTrace();

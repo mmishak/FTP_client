@@ -22,8 +22,8 @@ public class FtpDataSocket extends ServerSocket implements Runnable {
     private String listData = "";
     private File fileData = new File("");
 
-    public FtpDataSocket(int port) throws IOException {
-        super(port);
+    public FtpDataSocket() throws IOException {
+        super(Util.getAvailablePort(49152, 65535));
     }
 
     public void acceptConnection() throws IOException {
@@ -55,7 +55,7 @@ public class FtpDataSocket extends ServerSocket implements Runnable {
             sb.append(line).append('\n');
         }
 
-        listData = sb.toString();
+        listData = sb.toString().trim();
 
         inReader.close();
     }
