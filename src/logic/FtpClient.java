@@ -8,14 +8,7 @@ import java.util.Arrays;
 /**
  * Created by mmishak on 28/02/17.
  */
-public final class FtpClient implements Runnable {
-
-    @Override
-    public void run() {
-        while (true){
-
-        }
-    }
+public final class FtpClient {
 
     private static class FileInfo {
         private boolean isDir = false;

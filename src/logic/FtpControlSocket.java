@@ -7,7 +7,7 @@ import java.net.Socket;
 /**
  * Created by mmishak on 01/03/17.
  */
-public class FtpControlSocket extends Socket{
+public class FtpControlSocket extends Socket {
 
     private BufferedWriter out;
     private BufferedReader in;
@@ -43,7 +43,8 @@ public class FtpControlSocket extends Socket{
 
             reply = sb.toString().trim();
 
-            Util.log(reply,Util.LOG_TYPE_ANSWER);
+            Util.log(reply, Util.LOG_TYPE_ANSWER);
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -54,7 +55,7 @@ public class FtpControlSocket extends Socket{
         return replyCode;
     }
 
-    public String getReply(){
+    public String getReply() {
         return reply;
     }
 

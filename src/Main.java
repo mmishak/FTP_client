@@ -9,8 +9,6 @@ import java.io.IOException;
 public class Main {
     public static void main(String[] args) throws IOException {
 
-        new Thread(new FtpClient()).start();
-
         MainFrame mainFrame = new MainFrame();
         mainFrame.setVisible(true);
 
