@@ -55,7 +55,7 @@ public class MainFrame extends JFrame {
     }
 
     private void setDefaultLogin() {                // TEMP!!!!!! ******************************
-        tfLocalAddress.setText("195.209.230.190");
+        tfLocalAddress.setText("127.0.0.1");
         tfUser.setText("mmishak");
         tfPassword.setText("mmpass");
         tfServer.setText("127.0.0.1");
@@ -315,8 +315,10 @@ public class MainFrame extends JFrame {
                             File file = getAddFile();
 
                             if (file == null) return;
+
                             if (FtpClient.storeFile(file)) {
                                 updateFileList();
+                                showSuccessLoadMessage("Загрузка завершена");
                             } else
                                 throw new IOException();
                         } catch (IOException e1) {
@@ -401,8 +403,12 @@ public class MainFrame extends JFrame {
 
                             File file = getSaveFile(FtpClient.getFileName(listFiles.getSelectedIndex()));
 
+                            if (file == null){
+                                throw new IOException();
+                            }
                             if (FtpClient.retrFile(listFiles.getSelectedIndex(), file)) {
                                 updateFileList();
+                                showSuccessLoadMessage("Файл загружен");
                             } else {
                                 file.delete();
                                 throw new IOException();
@@ -465,6 +471,13 @@ public class MainFrame extends JFrame {
                 string,
                 "Ошибка",
                 JOptionPane.ERROR_MESSAGE);
+    }
+
+    private void showSuccessLoadMessage(String string) {
+        JOptionPane.showMessageDialog(MainFrame.this,
+                string,
+                "Все норм",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
     private String showInputDialog(String title, String message) {
